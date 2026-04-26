@@ -1,0 +1,21 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Environment variables (SECURITY RISK)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and History files (SECURITY RISK)
+.history/
+.vscode/
+.idea/
+.DS_Store
+
+# Build outputs
+dist/
+build/
+*.log
