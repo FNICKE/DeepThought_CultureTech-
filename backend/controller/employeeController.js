@@ -37,6 +37,7 @@ const updateEmployee = async (req, res) => {
     const { id } = req.params;
     const { employee_code, full_name, email, phone, department, designation, basic_salary } = req.body;
 
+    // Use a single connection for the transaction to be safe
     const [result] = await pool.query(
       `UPDATE employees
        SET employee_code=?, full_name=?, email=?, phone=?, department=?, designation=?, basic_salary=?
@@ -50,7 +51,11 @@ const updateEmployee = async (req, res) => {
 
     return res.json({ message: "Employee updated successfully." });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to update employee.", error: error.message });
+    console.error("UPDATE ERROR:", error);
+    return res.status(500).json({ 
+      message: "Database error during update.", 
+      error: error.message 
+    });
   }
 };
 
@@ -58,8 +63,9 @@ const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Check if employee has associated records (optional: could also use cascading deletes in DB)
-    const [salaryRows] = await pool.query("SELECT id FROM salaries WHERE employee_id = ?", [id]);
+    // Check for associated records using CORRECT table names
+    // Table names in initDb.js are salary_entries and overtime_entries
+    const [salaryRows] = await pool.query("SELECT id FROM salary_entries WHERE employee_id = ?", [id]);
     const [overtimeRows] = await pool.query("SELECT id FROM overtime_entries WHERE employee_id = ?", [id]);
     
     if (salaryRows.length || overtimeRows.length) {

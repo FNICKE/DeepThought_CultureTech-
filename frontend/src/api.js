@@ -54,9 +54,32 @@ export const api = {
     }
   },
   
+  getSalaryEntries: async () => {
+    const { data } = await client.get("/salaries");
+    return data;
+  },
+
   createSalaryEntry: async (payload) => {
     try {
       const { data } = await client.post("/salaries", payload);
+      return data;
+    } catch (error) {
+      throw new Error(toErrorMessage(error));
+    }
+  },
+
+  updateSalaryEntry: async (id, payload) => {
+    try {
+      const { data } = await client.put(`/salaries/${id}`, payload);
+      return data;
+    } catch (error) {
+      throw new Error(toErrorMessage(error));
+    }
+  },
+
+  deleteSalaryEntry: async (id) => {
+    try {
+      const { data } = await client.delete(`/salaries/${id}`);
       return data;
     } catch (error) {
       throw new Error(toErrorMessage(error));

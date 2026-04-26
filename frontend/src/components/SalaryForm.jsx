@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { CreditCard, User, Calendar, IndianRupee, FileText, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { CreditCard, User, Calendar, IndianRupee, FileText, Loader2, CheckCircle2, AlertCircle, X } from "lucide-react";
 
-function SalaryForm() {
+const initialState = {
+  employee_id: "",
+  month_year: "",
+  amount: "",
+  notes: ""
+};
+
+function SalaryForm({ onSubmitted, editData, onCancelEdit }) {
   const [employees, setEmployees] = useState([]);
-  const [form, setForm] = useState({
-    employee_id: "",
-    month_year: "",
-    amount: "",
-    notes: ""
-  });
+  const [form, setForm] = useState(initialState);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,6 +27,21 @@ function SalaryForm() {
     };
     loadEmployees();
   }, []);
+
+  // Sync form with editData
+  useEffect(() => {
+    if (editData) {
+      setForm({
+        employee_id: editData.employee_id,
+        month_year: editData.month_year,
+        amount: editData.amount,
+        notes: editData.notes || ""
+      });
+      setMessage("");
+    } else {
+      setForm(initialState);
+    }
+  }, [editData]);
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -44,14 +61,26 @@ function SalaryForm() {
 
     try {
       setLoading(true);
-      await api.createSalaryEntry({
-        employee_id: Number(form.employee_id),
-        month_year: form.month_year,
-        amount: Number(form.amount),
-        notes: form.notes || null
-      });
-      setMessage("Salary entry created successfully.");
-      setForm({ employee_id: "", month_year: "", amount: "", notes: "" });
+      if (editData) {
+        await api.updateSalaryEntry(editData.id, {
+          employee_id: Number(form.employee_id),
+          month_year: form.month_year,
+          amount: Number(form.amount),
+          notes: form.notes || null
+        });
+        setMessage("Salary record updated successfully.");
+      } else {
+        await api.createSalaryEntry({
+          employee_id: Number(form.employee_id),
+          month_year: form.month_year,
+          amount: Number(form.amount),
+          notes: form.notes || null
+        });
+        setMessage("Salary entry created successfully.");
+      }
+      
+      if (!editData) setForm(initialState);
+      if (onSubmitted) onSubmitted();
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       setIsError(true);
@@ -62,15 +91,25 @@ function SalaryForm() {
   };
 
   return (
-    <div className="card-main">
-      <div className="flex items-center gap-[0.75rem] mb-[1.5rem]">
-        <div className="p-[0.5rem] bg-indigo-50 text-indigo-600 rounded-[0.5rem]">
-           <CreditCard size={20} />
+    <div className={`card-main transition-all duration-300 ${editData ? "ring-2 ring-indigo-500 shadow-xl" : ""}`}>
+      <div className="flex items-center justify-between mb-[1.5rem]">
+        <div className="flex items-center gap-[0.75rem]">
+          <div className={`p-[0.5rem] rounded-[0.5rem] ${editData ? "bg-amber-50 text-amber-600" : "bg-indigo-50 text-indigo-600"}`}>
+             <CreditCard size={20} />
+          </div>
+          <div>
+            <h3 className="text-[1.125rem] font-bold">{editData ? "Edit Salary Record" : "Process Monthly Salary"}</h3>
+            <p className="text-[0.875rem] text-slate-500">{editData ? "Modifying existing payroll entry." : "Generate payroll records for individual employees."}</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-[1.125rem] font-bold">Process Monthly Salary</h3>
-          <p className="text-[0.875rem] text-slate-500">Generate payroll records for individual employees.</p>
-        </div>
+        {editData && (
+          <button 
+            onClick={onCancelEdit}
+            className="p-[0.5rem] text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-all"
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       <form onSubmit={onSubmit} className="space-y-[1rem]">
@@ -147,17 +186,28 @@ function SalaryForm() {
         </div>
 
         <div className="pt-[0.5rem] flex flex-col gap-[0.75rem]">
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full sm:w-auto"
-          >
-            {loading ? (
-              <><Loader2 className="animate-spin" size={18} /> Processing...</>
-            ) : (
-              "Confirm Salary Payment"
+          <div className="flex gap-[0.75rem]">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`flex-1 btn-primary ${editData ? "bg-amber-600 hover:bg-amber-700" : ""}`}
+            >
+              {loading ? (
+                <><Loader2 className="animate-spin" size={18} /> Processing...</>
+              ) : (
+                editData ? "Update Record" : "Confirm Salary Payment"
+              )}
+            </button>
+            {editData && (
+              <button 
+                type="button"
+                onClick={onCancelEdit}
+                className="rounded-[0.75rem] border border-slate-200 px-[1.5rem] py-[0.625rem] text-[0.875rem] font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
             )}
-          </button>
+          </div>
 
           {message && (
             <div className={`flex items-center gap-[0.5rem] rounded-[0.75rem] p-[0.75rem] text-[0.875rem] font-medium ${isError ? "bg-red-50 text-red-700 border border-red-100" : "bg-emerald-50 text-emerald-700 border border-emerald-100"}`}>

@@ -13,7 +13,11 @@ const getDateOnly = (dateLike) => {
 
 const validateEmployeePayload = (body) => {
   const errors = [];
-  const allowedDesignations = ["Mason", "Electrician", "Plumber", "Supervisor", "Helper"];
+  const allowedDesignations = [
+    "Fullstack Developer", "Frontend Developer", "Backend Developer", 
+    "UI/UX Designer", "QA Engineer", "Project Manager",
+    "Mason", "Electrician", "Plumber", "Supervisor", "Helper"
+  ];
 
   if (!body.full_name || !String(body.full_name).trim()) errors.push("Full name is required.");
   if (!body.department || !String(body.department).trim()) errors.push("Department is required.");
