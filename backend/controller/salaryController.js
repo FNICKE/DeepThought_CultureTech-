@@ -14,7 +14,7 @@ const createSalaryEntry = async (req, res) => {
     }
 
     const [result] = await pool.query(
-      "INSERT INTO salary_entries (employee_id, month_year, amount, notes) VALUES (?, ?, ?, ?)",
+      "INSERT INTO salaries (employee_id, month_year, amount, notes) VALUES (?, ?, ?, ?)",
       [employee_id, month_year, amount, notes || null]
     );
 
@@ -28,7 +28,7 @@ const getSalaryEntries = async (_req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT s.*, e.full_name, e.designation, e.department
-       FROM salary_entries s
+       FROM salaries s
        INNER JOIN employees e ON e.id = s.employee_id
        ORDER BY s.month_year DESC, s.created_at DESC`
     );
@@ -47,7 +47,7 @@ const updateSalaryEntry = async (req, res) => {
     const { employee_id, month_year, amount, notes } = req.body;
 
     const [result] = await pool.query(
-      `UPDATE salary_entries 
+      `UPDATE salaries 
        SET employee_id=?, month_year=?, amount=?, notes=?
        WHERE id=?`,
       [employee_id, month_year, amount, notes || null, id]
@@ -66,7 +66,7 @@ const updateSalaryEntry = async (req, res) => {
 const deleteSalaryEntry = async (req, res) => {
   try {
     const { id } = req.params;
-    const [result] = await pool.query("DELETE FROM salary_entries WHERE id = ?", [id]);
+    const [result] = await pool.query("DELETE FROM salaries WHERE id = ?", [id]);
 
     if (!result.affectedRows) {
       return res.status(404).json({ message: "Salary record not found." });

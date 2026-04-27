@@ -65,7 +65,7 @@ const deleteEmployee = async (req, res) => {
     
     // Check for associated records using CORRECT table names
     // Table names in initDb.js are salary_entries and overtime_entries
-    const [salaryRows] = await pool.query("SELECT id FROM salary_entries WHERE employee_id = ?", [id]);
+    const [salaryRows] = await pool.query("SELECT id FROM salaries WHERE employee_id = ?", [id]);
     const [overtimeRows] = await pool.query("SELECT id FROM overtime_entries WHERE employee_id = ?", [id]);
     
     if (salaryRows.length || overtimeRows.length) {
